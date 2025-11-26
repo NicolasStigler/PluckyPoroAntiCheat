@@ -31,6 +31,16 @@ async fn main() -> anyhow::Result<()> {
     let pid = child.id();
     info!("Spawned target process {} with PID: {}", args.executable, pid);
 
+    let result = run_agent(pid).await;
+
+    // Attempt to kill the child process on exit
+    let _ = child.kill();
+    let _ = child.wait();
+
+    result
+}
+
+async fn run_agent(pid: u32) -> anyhow::Result<()> {
     // Bump the memlock rlimit. This is needed for older kernels that don't use the
     // new memcg based accounting, see https://lwn.net/Articles/837122/
     let rlim = libc::rlimit {
@@ -60,9 +70,16 @@ async fn main() -> anyhow::Result<()> {
                 tokio::io::unix::AsyncFd::with_interest(logger, tokio::io::Interest::READABLE)?;
             tokio::task::spawn(async move {
                 loop {
-                    let mut guard = logger.readable_mut().await.unwrap();
-                    guard.get_inner_mut().flush();
-                    guard.clear_ready();
+                    match logger.readable_mut().await {
+                        Ok(mut guard) => {
+                            guard.get_inner_mut().flush();
+                            guard.clear_ready();
+                        }
+                        Err(e) => {
+                            warn!("Logger readable_mut failed: {}", e);
+                            break;
+                        }
+                    }
                 }
             });
         }
@@ -99,7 +116,7 @@ async fn main() -> anyhow::Result<()> {
     let mut events = PerfEventArray::try_from(events_map)?;
 
     for cpu_id in online_cpus().map_err(|(_, error)| error)? {
-        let mut buf = events.open(cpu_id, None)?;
+        let buf = events.open(cpu_id, None)?;
         let mut buf = tokio::io::unix::AsyncFd::new(buf)?;
 
         tokio::task::spawn(async move {
@@ -108,10 +125,23 @@ async fn main() -> anyhow::Result<()> {
                 .collect::<Vec<_>>();
 
             loop {
-                let mut guard = buf.readable_mut().await.unwrap();
-                let events = guard.get_inner_mut().read_events(&mut buffers).unwrap();
-                for i in 0..events.read {
-                    let buf = &mut buffers[i];
+                let mut guard = match buf.readable_mut().await {
+                    Ok(guard) => guard,
+                    Err(e) => {
+                        warn!("PerfEventArray readable_mut failed: {}", e);
+                        break;
+                    }
+                };
+
+                let events = match guard.get_inner_mut().read_events(&mut buffers) {
+                    Ok(events) => events,
+                    Err(e) => {
+                        warn!("PerfEventArray read_events failed: {}", e);
+                        continue;
+                    }
+                };
+
+                for buf in buffers.iter_mut().take(events.read) {
                     let ptr = buf.as_ptr() as *const SecurityEvent;
                     let event = unsafe { ptr.read_unaligned() };
 
@@ -141,9 +171,6 @@ async fn main() -> anyhow::Result<()> {
     println!("Waiting for Ctrl-C...");
     ctrl_c.await?;
     println!("Exiting...");
-
-    // Attempt to kill the child process on exit
-    let _ = child.kill();
 
     Ok(())
 }

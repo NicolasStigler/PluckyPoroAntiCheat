@@ -23,7 +23,7 @@ static EVENTS: PerfEventArray<SecurityEvent> = PerfEventArray::new(0);
 
 const PTRACE_TRACEME: u64 = 0;
 const EPERM: i64 = -1;
-const MAX_ENV_VARS: u32 = 32;
+const MAX_ENV_VARS: u32 = 64;
 const LD_PRELOAD_LEN: usize = 11;
 const LD_PRELOAD_PREFIX: [u8; 11] = *b"LD_PRELOAD=";
 
