@@ -2,6 +2,11 @@
 
 Plucky Poro Anti-Cheat is specifically designed for Linux and aims to address game devs concerns about cheating by utilizing eBPF for efficient monitoring without requiring intrusive kernel drivers (like Windows ACs) or kernel modules. Its goal is to achieve feature parity with systems like Vanguard and EAC.
 
+## Name Inspiration
+
+Plucky Poro
+> "New recruit has the kind of endurance and courage shown by our finest soldiers. Will he make it to the **Vanguard** someday? He's... smaller than the rest, but we'll see." — Vanguard Sergeant
+
 ## Architecture
 
 The system employs a hybrid **Event-Driven Observability** model, leveraging eBPF for safe, high-performance kernel instrumentation and Rust for a robust user-space control plane.
