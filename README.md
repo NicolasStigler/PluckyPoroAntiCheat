@@ -104,5 +104,17 @@ To bridge the gap between this implementation and enterprise-grade solutions (Va
 * **Heartbeat & Watchdog:** Implement a cryptographic heartbeat between the Kernel Probe and User-Space Agent. If the User-Space agent is killed or paused (via `SIGSTOP`), the eBPF probe triggers a system panic or terminates the game session immediately.
 * **Obfuscation & Anti-Tamper:** Implement virtualization checks (Red Pill/Check's like [VMAware](https://github.com/kernelwernel/VMAware)) to detect if the game is running inside a VM or Hypervisor used for introspection.
 
+## License
+
+With the exception of eBPF code, PluckyPoroAntiCheat is distributed under the terms of the MIT license or the Apache License (version 2.0), at your option.
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this crate by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
+
+### eBPF
+
+All eBPF code is distributed under either the terms of the GNU General Public License, Version 2 or the MIT license, at your option.
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this project by you, as defined in the GPL-2 license, shall be dual licensed as above, without any additional terms or conditions.
+
 ---
 *Disclaimer: This project is for educational and research purposes. It demonstrates how modern eBPF technology can create performant security observability in Linux environments.*
