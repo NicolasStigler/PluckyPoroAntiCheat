@@ -1,0 +1,13 @@
+[INFO  plucky_poro_anti_cheat] Spawned target process ./tests/victim with PID: 4580
+Victim process started. PID: 4580
+[INFO  plucky_poro_anti_cheat] Added PID 4580 to protected list
+Waiting for Ctrl-C...
+[INFO  plucky_poro_anti_cheat] SECURITY ALERT: Type=PTRACE PID=4637 Comm=python3
+[INFO  plucky_poro_anti_cheat] Blocked PTRACE request 16 on protected PID 4580
+[INFO  plucky_poro_anti_cheat] SECURITY ALERT: Type=VM_READ PID=4639 Comm=python3
+[INFO  plucky_poro_anti_cheat] Blocked process_vm_readv on protected PID 4580 from PID 4639
+Received SIGUSR1. Attempting execve with LD_PRELOAD...
+execve failed with errno: 1
+[+] execve blocked with EPERM (Success)
+[INFO  plucky_poro_anti_cheat] SECURITY ALERT: Type=EXEC PID=4580 Comm=victim
+[INFO  plucky_poro_anti_cheat] Blocked LD_PRELOAD execve on protected PID 4580
