@@ -1,0 +1,4 @@
+[INFO  plucky_poro_server] Mock server listening on 127.0.0.1:8080
+[INFO  plucky_poro_server] Received security alert: PID=29831, Type=1, Comm=python3
+[INFO  plucky_poro_server] Received security alert: PID=29833, Type=2, Comm=python3
+[INFO  plucky_poro_server] Received security alert: PID=29781, Type=4, Comm=victim

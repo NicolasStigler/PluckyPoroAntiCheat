@@ -3,11 +3,11 @@ use aya::programs::KProbe;
 use aya::util::online_cpus;
 use bytes::BytesMut;
 use clap::Parser;
-#[rustfmt::skip]
-use log::{debug, warn, info};
+use log::{debug, info, warn};
 use plucky_poro_anti_cheat_common::{
     SecurityEvent, EVENT_EXEC, EVENT_PTRACE, EVENT_VM_READ, EVENT_VM_WRITE,
 };
+use reqwest::Client;
 use std::process::Command;
 use tokio::signal;
 
@@ -17,6 +17,10 @@ struct Args {
     /// Path to the executable to protect
     #[arg(short, long)]
     executable: String,
+    
+    /// Address of the server to send alerts to
+    #[arg(long, default_value = "http://127.0.0.1:8080")]
+    server_addr: String,
 }
 
 #[tokio::main]
@@ -31,7 +35,7 @@ async fn main() -> anyhow::Result<()> {
     let pid = child.id();
     info!("Spawned target process {} with PID: {}", args.executable, pid);
 
-    let result = run_agent(pid).await;
+    let result = run_agent(pid, &args.server_addr).await;
 
     // Attempt to kill the child process on exit
     let _ = child.kill();
@@ -40,7 +44,18 @@ async fn main() -> anyhow::Result<()> {
     result
 }
 
-async fn run_agent(pid: u32) -> anyhow::Result<()> {
+async fn send_alert(client: &Client, server_addr: &str, event: &SecurityEvent) {
+    // Serialize the event directly using serde
+    // This will serialize `comm` as an array of integers, which matches what the server expects
+    let body = serde_json::to_string(&event).unwrap();
+    if let Err(e) = client.post(server_addr).header("Content-Type", "application/json").body(body).send().await {
+        warn!("Failed to send alert to server: {}", e);
+    }
+}
+
+async fn run_agent(pid: u32, server_addr: &str) -> anyhow::Result<()> {
+    let client = Client::new();
+    
     // Bump the memlock rlimit. This is needed for older kernels that don't use the
     // new memcg based accounting, see https://lwn.net/Articles/837122/
     let rlim = libc::rlimit {
@@ -115,11 +130,14 @@ async fn run_agent(pid: u32) -> anyhow::Result<()> {
     let events_map = ebpf.take_map("EVENTS").unwrap();
     let mut events = PerfEventArray::try_from(events_map)?;
 
+    let mut tasks = Vec::new();
     for cpu_id in online_cpus().map_err(|(_, error)| error)? {
         let buf = events.open(cpu_id, None)?;
         let mut buf = tokio::io::unix::AsyncFd::new(buf)?;
+        let client = client.clone();
+        let server_addr = server_addr.to_string();
 
-        tokio::task::spawn(async move {
+        tasks.push(tokio::task::spawn(async move {
             let mut buffers = (0..10)
                 .map(|_| BytesMut::with_capacity(1024))
                 .collect::<Vec<_>>();
@@ -161,16 +179,22 @@ async fn run_agent(pid: u32) -> anyhow::Result<()> {
                         "SECURITY ALERT: Type={} PID={} Comm={}",
                         event_type_str, event.pid, comm
                     );
+                    
+                    send_alert(&client, &server_addr, &event).await;
                 }
                 guard.clear_ready();
             }
-        });
+        }));
     }
 
     let ctrl_c = signal::ctrl_c();
     println!("Waiting for Ctrl-C...");
     ctrl_c.await?;
     println!("Exiting...");
+
+    for task in tasks {
+        task.await?;
+    }
 
     Ok(())
 }

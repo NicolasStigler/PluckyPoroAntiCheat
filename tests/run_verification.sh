@@ -115,6 +115,22 @@ else
 fi
 
 echo "----------------------------------------------------------------"
+echo "Checking Server Logs for Alerts..."
+SERVER_LOG_FILE="server.log"
+sudo pkill -f "plucky-poro-server"
+sleep 1
+if [ -f "$SERVER_LOG_FILE" ]; then
+    if grep -q "Received security alert" $SERVER_LOG_FILE; then
+        echo -e "${GREEN}[PASS] Server received security alerts.${NC}"
+    else
+        echo -e "${RED}[FAIL] Server did NOT receive security alerts.${NC}"
+    fi
+    rm -f $SERVER_LOG_FILE
+else
+    echo -e "${RED}[FAIL] Server log file not found.${NC}"
+fi
+
+echo "----------------------------------------------------------------"
 echo "Cleaning up..."
 sudo kill $AGENT_PID
 # Victim should be killed by agent, but ensure it's gone

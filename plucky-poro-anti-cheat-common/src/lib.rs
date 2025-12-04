@@ -2,6 +2,7 @@
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[cfg_attr(feature = "user", derive(serde::Serialize, serde::Deserialize))]
 pub struct SecurityEvent {
     pub pid: u32,
     pub event_type: u32, // 1: Ptrace, 2: Memory, 3: Exec

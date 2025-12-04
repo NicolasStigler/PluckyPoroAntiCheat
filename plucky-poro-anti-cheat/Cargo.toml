@@ -16,6 +16,9 @@ clap = { workspace = true, features = ["derive"] }
 env_logger = { workspace = true }
 libc = { workspace = true }
 log = { workspace = true }
+axum = "0.7.5"
+reqwest = { version = "0.12.5", features = ["json"] }
+serde_json = "1.0.120"
 tokio = { workspace = true, features = [
     "macros",
     "rt",
@@ -44,3 +47,7 @@ plucky-poro-anti-cheat-ebpf = { path = "../plucky-poro-anti-cheat-ebpf" }
 [[bin]]
 name = "plucky-poro-anti-cheat"
 path = "src/main.rs"
+
+[[bin]]
+name = "plucky-poro-server"
+path = "src/server.rs"

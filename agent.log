@@ -1,13 +1,13 @@
-[INFO  plucky_poro_anti_cheat] Spawned target process ./tests/victim with PID: 23743
-Victim process started. PID: 23743
-[INFO  plucky_poro_anti_cheat] Added PID 23743 to protected list
+[INFO  plucky_poro_anti_cheat] Spawned target process ./tests/victim with PID: 29781
+Victim process started. PID: 29781
+[INFO  plucky_poro_anti_cheat] Added PID 29781 to protected list
 Waiting for Ctrl-C...
-[INFO  plucky_poro_anti_cheat] SECURITY ALERT: Type=PTRACE PID=23781 Comm=python3
-[INFO  plucky_poro_anti_cheat] Blocked PTRACE request 16 on protected PID 23743
-[INFO  plucky_poro_anti_cheat] SECURITY ALERT: Type=VM_READ PID=23783 Comm=python3
-[INFO  plucky_poro_anti_cheat] Blocked process_vm_readv on protected PID 23743 from PID 23783
+[INFO  plucky_poro_anti_cheat] SECURITY ALERT: Type=PTRACE PID=29831 Comm=python3
+[INFO  plucky_poro_anti_cheat] Blocked PTRACE request 16 on protected PID 29781
+[INFO  plucky_poro_anti_cheat] SECURITY ALERT: Type=VM_READ PID=29833 Comm=python3
+[INFO  plucky_poro_anti_cheat] Blocked process_vm_readv on protected PID 29781 from PID 29833
 Received SIGUSR1. Attempting execve with LD_PRELOAD...
 execve failed with errno: 1
 [+] execve blocked with EPERM (Success)
-[INFO  plucky_poro_anti_cheat] SECURITY ALERT: Type=EXEC PID=23743 Comm=victim
-[INFO  plucky_poro_anti_cheat] Blocked LD_PRELOAD execve on protected PID 23743
+[INFO  plucky_poro_anti_cheat] SECURITY ALERT: Type=EXEC PID=29781 Comm=victim
+[INFO  plucky_poro_anti_cheat] Blocked LD_PRELOAD execve on protected PID 29781
